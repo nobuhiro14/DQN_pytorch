@@ -16,6 +16,8 @@ from utils.schedules import *
 from utils.gym_setup import *
 from logger import Logger
 import time
+import csv 
+
 
 OptimizerSpec = namedtuple("OptimizerSpec", ["constructor", "kwargs"])
 
@@ -119,6 +121,9 @@ def dqn_learning(env,
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 1000
     SAVE_MODEL_EVERY_N_STEPS = 100000
+    error_log_name = "error_log.csv"
+    f = open(error_log_name,'w')
+    writer = csv.writer(f)
 
     for t in itertools.count():
         ### 1. Check stopping criterion
@@ -223,7 +228,11 @@ def dqn_learning(env,
 
             # clip the error and flip 
             clipped_error = -1.0 * error.clamp(-1, 1)
-
+            
+            #save the error 
+            writer.writerow(error)
+            
+            
             # backwards pass
             optimizer.zero_grad()
             q_s_a.backward(clipped_error.data.unsqueeze(1))
@@ -299,3 +308,4 @@ def dqn_learning(env,
 
                 for tag, value in info.items():
                     logger.scalar_summary(tag, value, t+1)
+    f.close()
